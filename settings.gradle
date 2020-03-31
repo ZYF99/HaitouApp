@@ -1,0 +1,3 @@
+rootProject.name='HaitouApp'
+include ':app'
+include ':Jsouplib'
