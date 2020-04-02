@@ -12,8 +12,7 @@ import java.util.function.Consumer;
 
 public class JsoupTest {
     public static void main(String[] args) {
-        add();
-        /*
+
         List<CompanyJobModel> companyJobModelList = new ArrayList<>();
         //一次性扒20页的数据
         for (int pageNum = 1; pageNum <= 20; pageNum++) {
@@ -101,14 +100,9 @@ public class JsoupTest {
         }
         //查看扒到的所有信息
         System.out.print("list" + companyJobModelList);
-        */
 
     }
 
-    static void add(){
-        Double a = Double.valueOf(1.23)-Double.valueOf(1.25);
-        System.out.println(a);;
 
-    }
 
 }

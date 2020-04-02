@@ -1,14 +1,19 @@
 package com.zzz.haitouapp;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.arch.core.util.Function;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.content.ComponentName;
 import android.content.Intent;
-import android.os.Build;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.util.Log;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -16,6 +21,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -37,7 +43,42 @@ public class MainActivity extends AppCompatActivity {
         //先打开刷新动画
         swipeRefreshLayout.setRefreshing(true);
         //开始扒数据
-        fetchCompanyList();
+        //初始化webSocket服务
+        setUpWebSocket();
+    }
+
+    private void setUpWebSocket() {
+        URI uri = URI.create("ws://10.147.20.56:8080/wsdemo");
+        JWebSocketClient client = new JWebSocketClient(uri) {
+            @Override
+            public void onMessage(String message) {
+                //message就是接收到的消息
+                Log.e("JWebSClientService Received:", message);
+                Gson gson = new Gson();
+                final List<CompanyJobModel> list = gson.fromJson(message, new TypeToken<List<CompanyJobModel>>() {
+                }.getType());
+                System.out.print(list.toString());
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        NotiUtil.sendNotification(
+                                MainActivity.this,
+                                "一大批岗位正在等你来应聘哦~~"//主人，新鲜出炉的公司招聘信息！请签收
+                        );
+                        ((CompanyRecyclerAdapter) rvCompany.getAdapter()).replaceData(list);
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+                });
+
+            }
+        };
+        try {
+            client.connectBlocking();
+            client.send("!!!!!!!!!!!!!!!!!!!!~~~~~~~~~~~~~~~~~~~");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
     }
 
     private void setUpRecyclerView() {
@@ -183,4 +224,6 @@ public class MainActivity extends AppCompatActivity {
         }).start();
 
     }
+
+
 }
