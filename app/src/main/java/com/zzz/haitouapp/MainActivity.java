@@ -7,7 +7,6 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jsoup.Jsoup;
@@ -37,16 +36,19 @@ public class MainActivity extends AppCompatActivity {
         //先打开刷新动画
         swipeRefreshLayout.setRefreshing(true);
 
+/*
+        //测试通知
         findViewById(R.id.floating).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 NotificationUtil.sendNotification(MainActivity.this,"一大波新鲜的职位来袭～");
             }
         });
+*/
 
-/*      //初始化webSocket服务
+      //初始化webSocket服务
         //******注意先开启服务端
-        setUpWebSocket();*/
+        setUpWebSocket();
     }
 
     //配置webSocket
