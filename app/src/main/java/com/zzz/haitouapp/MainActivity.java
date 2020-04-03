@@ -4,22 +4,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.arch.core.util.Function;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
-import android.content.ComponentName;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.util.Log;
-
+import android.view.View;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -42,11 +36,20 @@ public class MainActivity extends AppCompatActivity {
         setUpRecyclerView();
         //先打开刷新动画
         swipeRefreshLayout.setRefreshing(true);
-        //开始扒数据
-        //初始化webSocket服务
-        setUpWebSocket();
+
+        findViewById(R.id.floating).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                NotificationUtil.sendNotification(MainActivity.this,"一大波新鲜的职位来袭～");
+            }
+        });
+
+/*      //初始化webSocket服务
+        //******注意先开启服务端
+        setUpWebSocket();*/
     }
 
+    //配置webSocket
     private void setUpWebSocket() {
         URI uri = URI.create("ws://10.147.20.56:8080/wsdemo");
         JWebSocketClient client = new JWebSocketClient(uri) {
@@ -61,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        NotiUtil.sendNotification(
+                        NotificationUtil.sendNotification(
                                 MainActivity.this,
                                 "一大批岗位正在等你来应聘哦~~"//主人，新鲜出炉的公司招聘信息！请签收
                         );
@@ -81,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    //设置列表
     private void setUpRecyclerView() {
         List<String> careerList = new ArrayList<>();
         careerList.add("销售岗");
@@ -113,6 +117,7 @@ public class MainActivity extends AppCompatActivity {
         rvCompany.setAdapter(companyRecyclerAdapter);
     }
 
+    //设置刷新监听
     private void setUpRefreshLayout() {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -122,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    //客户端扒数据
     private void fetchCompanyList() {
         new Thread(new Runnable() {
             @Override
