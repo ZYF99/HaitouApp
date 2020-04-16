@@ -1,12 +1,18 @@
 package com.zzz.haitouapp;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.arch.core.util.Function;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.EditText;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jsoup.Jsoup;
@@ -17,13 +23,19 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class MainActivity extends AppCompatActivity {
 
     RecyclerView rvCompany;
     SwipeRefreshLayout swipeRefreshLayout;
     CompanyRecyclerAdapter companyRecyclerAdapter;
+    String filterCity;
+    String filterWork;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,26 +45,23 @@ public class MainActivity extends AppCompatActivity {
         swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
         setUpRefreshLayout();
         setUpRecyclerView();
-        //先打开刷新动画
-        swipeRefreshLayout.setRefreshing(true);
 
-/*
         //测试通知
-        findViewById(R.id.floating).setOnClickListener(new View.OnClickListener() {
+        ((Toolbar)findViewById(R.id.tool_bar)).setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                NotificationUtil.sendNotification(MainActivity.this,"一大波新鲜的职位来袭～");
+                showFilterDialog();
             }
         });
-*/
 
-      //初始化webSocket服务
+        //初始化webSocket服务
         //******注意先开启服务端
         setUpWebSocket();
     }
 
     //配置webSocket
     private void setUpWebSocket() {
+        swipeRefreshLayout.setRefreshing(true);
         URI uri = URI.create("ws://10.147.20.56:8080/wsdemo");
         JWebSocketClient client = new JWebSocketClient(uri) {
             @Override
@@ -70,7 +79,8 @@ public class MainActivity extends AppCompatActivity {
                                 MainActivity.this,
                                 "一大批岗位正在等你来应聘哦~~"//主人，新鲜出炉的公司招聘信息！请签收
                         );
-                        ((CompanyRecyclerAdapter) rvCompany.getAdapter()).replaceData(list);
+                        List<CompanyJobModel> filterList = getFilterModelList(list);
+                        ((CompanyRecyclerAdapter) Objects.requireNonNull(rvCompany.getAdapter())).replaceData(filterList);
                         swipeRefreshLayout.setRefreshing(false);
                     }
                 });
@@ -223,15 +233,59 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        ((CompanyRecyclerAdapter) rvCompany.getAdapter()).replaceData(companyJobModelList);
+                        List<CompanyJobModel> filterList = getFilterModelList(companyJobModelList);
+                        ((CompanyRecyclerAdapter) rvCompany.getAdapter()).replaceData(filterList);
                         swipeRefreshLayout.setRefreshing(false);
                     }
                 });
-
             }
         }).start();
 
     }
 
+    //筛选内容弹窗
+    private void showFilterDialog() {
+        final View dialogView = LayoutInflater.from(MainActivity.this).inflate(R.layout.dialog_filter, null, false);
+        if(filterCity!=null) ((EditText)dialogView.findViewById(R.id.et_city)).setText(filterCity);
+        if(filterWork!=null) ((EditText)dialogView.findViewById(R.id.et_work)).setText(filterWork);
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle("推送内容筛选")
+                .setView(dialogView)
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        filterCity = ((EditText) dialogView.findViewById(R.id.et_city)).getText().toString();
+                        filterWork = ((EditText) dialogView.findViewById(R.id.et_work)).getText().toString();
+                    }
+                })
+                .setNegativeButton("取消", null)
+                .create().show();
+    }
+
+    //筛选列表
+    private List<CompanyJobModel> getFilterModelList(List<CompanyJobModel> oldList) {
+        List<CompanyJobModel> resultList = oldList;
+        //如果城市筛选条件不为空
+        if (filterCity != null && !filterCity.isEmpty()) {
+            resultList = resultList.stream().filter(new Predicate<CompanyJobModel>() {
+                @Override
+                public boolean test(CompanyJobModel companyJobModel) {
+                    //判断这个model的城市列表是否含有筛选条件中输入的城市
+                    return companyJobModel.getCityList().contains(filterCity);
+                }
+            }).collect(Collectors.<CompanyJobModel>toList());
+        }
+        //如果岗位筛选条件不为空
+        if (filterWork != null && !filterWork.isEmpty()) {
+            resultList = resultList.stream().filter(new Predicate<CompanyJobModel>() {
+                @Override
+                public boolean test(CompanyJobModel companyJobModel) {
+                    //判断这个model的工作列表是否含有筛选条件中输入的岗位
+                    return companyJobModel.getCareerList().contains(filterWork);
+                }
+            }).collect(Collectors.<CompanyJobModel>toList());
+        }
+        return resultList;
+    }
 
 }

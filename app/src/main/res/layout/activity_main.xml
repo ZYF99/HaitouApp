@@ -7,16 +7,14 @@
     android:layout_height="match_parent"
     android:background="#272727"
     tools:context=".MainActivity">
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/floating"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_margin="32dp"
-        app:elevation="2dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+<androidx.appcompat.widget.Toolbar
+    android:id="@+id/tool_bar"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:title="@string/app_name"
+    app:titleTextColor="#ffffff"
+    app:navigationIcon="@drawable/icon_filter"
+    app:layout_constraintTop_toTopOf="parent"/>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe_refresh_layout"
@@ -25,7 +23,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/tool_bar">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_company"
